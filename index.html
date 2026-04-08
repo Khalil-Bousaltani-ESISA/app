@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de Mémoire - Pro</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #2c3e50;
+            color: white;
+            margin: 0;
+            padding: 10px;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        h1 { margin: 0; font-size: clamp(20px, 5vw, 32px); }
+
+        #mute-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #34495e;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+
+        .stats {
+            font-size: clamp(14px, 3vw, 18px);
+            font-weight: bold;
+            color: #f1c40f;
+        }
+
+        select, button:not(#mute-btn) {
+            padding: 8px 15px;
+            font-size: clamp(14px, 3vw, 16px);
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        select { background-color: #ecf0f1; color: #2c3e50; width: 100%; max-width: 200px; }
+        
+        button:not(#mute-btn) {
+            background-color: #e74c3c;
+            color: white;
+            transition: background 0.2s;
+        }
+        button:not(#mute-btn):hover { background-color: #c0392b; }
+
+        .game-board {
+            display: grid;
+            grid-gap: clamp(5px, 2vw, 10px);
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            justify-content: center;
+        }
+
+        .card {
+            width: clamp(50px, 15vw, 80px);
+            height: clamp(50px, 15vw, 80px);
+            background-color: #3498db;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(24px, 8vw, 40px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s;
+            user-select: none;
+        }
+
+        .card.flipped, .card.matched {
+            background-color: #ecf0f1;
+            transform: rotateY(180deg) scale(1.05);
+            cursor: default;
+        }
+
+        .card.matched {
+            background-color: #2ecc71;
+            animation: pulse 0.5s;
+        }
+
+        .card span {
+            display: none;
+            transform: rotateY(180deg);
+        }
+
+        .card.flipped span, .card.matched span {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1.05) rotateY(180deg); }
+            50% { transform: scale(1.2) rotateY(180deg); }
+            100% { transform: scale(1.05) rotateY(180deg); }
+        }
+
+        /* Modal de Victoire */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            transform: scale(0.7);
+            animation: popIn 0.4s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 90%;
+        }
+
+        @keyframes popIn {
+            to { transform: scale(1); }
+        }
+
+        .modal-content h2 { margin-top: 0; color: #e74c3c; font-size: clamp(20px, 6vw, 28px); }
+        .modal-content p { font-size: 18px; margin: 10px 0; }
+        .new-record { color: #27ae60; font-weight: bold; font-size: 20px; animation: pulse 1s infinite; display: none; }
+
+        canvas#confetti {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <h1>Jeu de Mémoire</h1>
+        <button id="mute-btn" onclick="toggleMute()">🔊</button>
+    </div>
+    
+    <div class="controls">
+        <div class="stats">🏆 Record: <span id="best-score">--</span></div>
+        <div class="stats">⏱️ Temps: <span id="time">00:00</span></div>
+        <div class="stats">🔄 Tentatives: <span id="moves">0</span></div>
+        <select id="difficulty" onchange="initGame()">
+            <option value="8">Facile (8 cartes)</option>
+            <option value="16" selected>Normal (16 cartes)</option>
+            <option value="24">Difficile (24 cartes)</option>
+        </select>
+        <button onclick="initGame()">Rejouer</button>
+    </div>
+
+    <div class="game-board" id="game-board"></div>
+
+    <!-- Fenêtre modale de victoire -->
+    <div id="victory-modal" class="modal">
+        <div class="modal-content">
+            <h2>Bravo Khalil ! 🎉</h2>
+            <p>Niveau : <strong id="modal-level"></strong></p>
+            <p>Temps : <strong id="modal-time"></strong></p>
+            <p>Tentatives : <strong id="modal-moves"></strong></p>
+            <p id="new-record-msg" class="new-record">🏆 Nouveau Record ! 🏆</p>
+            <button onclick="closeModalAndReplay()" style="margin-top: 15px; padding: 10px 20px; font-size: 18px;">Rejouer</button>
+        </div>
+    </div>
+
+    <canvas id="confetti"></canvas>
+
+    <script>
+        const gameBoard = document.getElementById('game-board');
+        const timeDisplay = document.getElementById('time');
+        const movesDisplay = document.getElementById('moves');
+        const bestScoreDisplay = document.getElementById('best-score');
+        const difficultySelect = document.getElementById('difficulty');
+        const modal = document.getElementById('victory-modal');
+        const muteBtn = document.getElementById('mute-btn');
+
+        const allEmojis = ['🍎', '🍌', '🍒', '🍇', '🍉', '🍍', '🥝', '🍓', '🥥', '🥭', '🍑', '🍋'];
+        
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let moves = 0;
+        let timerInterval;
+        let secondsPassed = 0;
+        let gameStarted = false;
+        let isMuted = false;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function toggleMute() {
+            isMuted = !isMuted;
+            muteBtn.textContent = isMuted ? '🔇' : '🔊';
+        }
+
+        function playSound(type) {
+            if (isMuted) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'flip') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'win') {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+                oscillator.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.15);
+                oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.3);
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + 0.45);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.8);
+            }
+        }
+
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (!gameStarted) {
+                gameStarted = true;
+                timerInterval = setInterval(() => {
+                    secondsPassed++;
+                    timeDisplay.textContent = formatTime(secondsPassed);
+                }, 1000);
+            }
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function getBestScoreKey() {
+            return `memory_best_moves_${difficultySelect.value}`;
+        }
+
+        function loadBestScore() {
+            const bestMoves = localStorage.getItem(getBestScoreKey());
+            bestScoreDisplay.textContent = bestMoves ? `${bestMoves} coups` : '--';
+            return bestMoves;
+        }
+
+        function saveBestScore(moves) {
+            const bestMoves = loadBestScore();
+            if (!bestMoves || moves < parseInt(bestMoves)) {
+                localStorage.setItem(getBestScoreKey(), moves);
+                document.getElementById('new-record-msg').style.display = 'block';
+                loadBestScore();
+            } else {
+                document.getElementById('new-record-msg').style.display = 'none';
+            }
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function initGame() {
+            stopTimer();
+            gameBoard.innerHTML = '';
+            flippedCards = [];
+            matchedPairs = 0;
+            moves = 0;
+            secondsPassed = 0;
+            gameStarted = false;
+            timeDisplay.textContent = '00:00';
+            movesDisplay.textContent = moves;
+            modal.style.display = 'none';
+            loadBestScore();
+
+            const numCards = parseInt(difficultySelect.value);
+            const numPairs = numCards / 2;
+            
+            // Grille responsive adaptative !
+            const cols = numCards === 8 ? 4 : (numCards === 16 ? 4 : (window.innerWidth < 400 ? 4 : 6));
+            gameBoard.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+
+            const selectedEmojis = allEmojis.slice(0, numPairs);
+            cards = shuffle([...selectedEmojis, ...selectedEmojis]);
+
+            cards.forEach((emoji) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.emoji = emoji;
+                card.innerHTML = `<span>${emoji}</span>`;
+                card.addEventListener('click', flipCard);
+                gameBoard.appendChild(card);
+            });
+        }
+
+        // Refaire le layout si on tourne le téléphone
+        window.addEventListener('resize', () => {
+            if(!gameStarted) initGame(); 
+        });
+
+        function flipCard() {
+            if (this.classList.contains('flipped') || this.classList.contains('matched') || flippedCards.length === 2) {
+                return;
+            }
+
+            startTimer();
+            playSound('flip');
+
+            this.classList.add('flipped');
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                moves++;
+                movesDisplay.textContent = moves;
+                setTimeout(checkMatch, 800);
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+
+            if (card1.dataset.emoji === card2.dataset.emoji) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                matchedPairs++;
+
+                const totalPairs = parseInt(difficultySelect.value) / 2;
+
+                if (matchedPairs === totalPairs) {
+                    stopTimer();
+                    playSound('win');
+                    setTimeout(showVictory, 400);
+                }
+            } else {
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+            }
+
+            flippedCards = [];
+        }
+
+        function showVictory() {
+            document.getElementById('modal-level').textContent = difficultySelect.options[difficultySelect.selectedIndex].text;
+            document.getElementById('modal-time').textContent = formatTime(secondsPassed);
+            document.getElementById('modal-moves').textContent = moves;
+            
+            saveBestScore(moves);
+            
+            modal.style.display = 'flex';
+            triggerConfetti();
+        }
+
+        function closeModalAndReplay() {
+            modal.style.display = 'none';
+            initGame();
+        }
+
+        // --- Moteur de Confettis très léger ---
+        let confettiActive = false;
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+            const particles = [];
+            const colors = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+
+            for(let i=0; i<150; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2 + 50,
+                    r: Math.random() * 6 + 4,
+                    dx: Math.random() * 15 - 7.5,
+                    dy: Math.random() * -15 - 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.floor(Math.random() * 10) - 10,
+                    tiltAngleInc: (Math.random() * 0.07) + 0.05,
+                    tiltAngle: 0
+                });
+            }
+
+            confettiActive = true;
+            function render() {
+                if(!confettiActive) { ctx.clearRect(0,0,canvas.width,canvas.height); return; }
+                ctx.clearRect(0,0, canvas.width, canvas.height);
+                let activeCount = 0;
+                
+                particles.forEach(p => {
+                    p.tiltAngle += p.tiltAngleInc;
+                    p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
+                    p.x += Math.sin(p.tiltAngle) * 2;
+                    p.dy += 0.2; // gravité
+                    p.y += p.dy;
+                    p.x += p.dx;
+                    
+                    if (p.y <= canvas.height) activeCount++;
+
+                    ctx.beginPath();
+                    ctx.lineWidth = p.r;
+                    ctx.strokeStyle = p.color;
+                    ctx.moveTo(p.x + p.tilt + p.r, p.y);
+                    ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+                    ctx.stroke();
+                });
+
+                if(activeCount > 0) requestAnimationFrame(render);
+                else ctx.clearRect(0,0,canvas.width,canvas.height);
+            }
+            render();
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
