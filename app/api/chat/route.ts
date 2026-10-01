@@ -5,12 +5,34 @@ type GroqResponse = {
   error?: { message?: string };
 };
 
+type HistoryMessage = { role: "user" | "assistant"; content: string };
+const requestLog = new Map<string, number[]>();
+const MAX_MESSAGE_LENGTH = 4000;
+const MAX_REQUESTS_PER_MINUTE = 20;
+
+function isRateLimited(request: Request) {
+  const address = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous";
+  const now = Date.now();
+  const recentRequests = (requestLog.get(address) ?? []).filter((timestamp) => now - timestamp < 60_000);
+  recentRequests.push(now);
+  requestLog.set(address, recentRequests);
+  return recentRequests.length > MAX_REQUESTS_PER_MINUTE;
+}
+
 export async function POST(request: Request) {
+  if (isRateLimited(request)) {
+    return NextResponse.json({ error: "Trop de demandes. Reessayez dans une minute." }, { status: 429 });
+  }
+
   const body = await request.json().catch(() => ({}));
   const message = typeof body.message === "string" ? body.message.trim() : "";
+  const history = Array.isArray(body.messages) ? (body.messages as HistoryMessage[]).filter((item) => item && (item.role === "user" || item.role === "assistant") && typeof item.content === "string").slice(-12) : [];
 
   if (!message) {
     return NextResponse.json({ error: "Message requis" }, { status: 400 });
+  }
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    return NextResponse.json({ error: `Message trop long. Limite : ${MAX_MESSAGE_LENGTH} caracteres.` }, { status: 400 });
   }
 
   const apiKey = process.env.GROQ_API_KEY;
@@ -31,7 +53,7 @@ export async function POST(request: Request) {
           model: "openai/gpt-oss-20b",
           messages: [
             { role: "system", content: "Tu es Atelier, un assistant utile. Reponds en francais de maniere claire et concise." },
-            { role: "user", content: message },
+            ...history.map((item) => ({ role: item.role, content: item.content.slice(0, MAX_MESSAGE_LENGTH) })),
           ],
           temperature: 0.7,
           max_tokens: 1000,

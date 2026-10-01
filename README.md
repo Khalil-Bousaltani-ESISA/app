@@ -2,7 +2,9 @@
 
 Une plateforme de conversation inspiree de ChatGPT, construite avec Next.js, TypeScript et Tailwind CSS.
 
-Elle comprend une interface responsive, des suggestions de conversation, un mode clair/sombre et une route serveur `POST /api/chat`. Sans cle API, elle fonctionne en mode demo.
+Elle comprend une interface responsive, des suggestions de conversation, un mode clair/sombre, des conversations sauvegardees dans le navigateur, le renommage/suppression des conversations, des pieces jointes comme contexte et une route serveur `POST /api/chat`. Sans cle API, elle fonctionne en mode demo.
+
+L'API limite la taille des messages et le nombre de requetes par minute pour proteger le quota Groq gratuit. L'authentification et la synchronisation multi-appareils restent les prochaines etapes pour une version SaaS.
 
 ## Activer Groq gratuitement
 
