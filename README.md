@@ -4,6 +4,19 @@ Une plateforme de conversation inspiree de ChatGPT, construite avec Next.js, Typ
 
 Elle comprend une interface responsive, des suggestions de conversation, un mode clair/sombre et une route serveur `POST /api/chat`. Sans cle API, elle fonctionne en mode demo.
 
+## Activer Gemini gratuitement
+
+1. Cree une cle API Gemini depuis Google AI Studio.
+2. Cree un fichier `.env.local` a la racine du projet :
+
+```env
+GEMINI_API_KEY=ta_cle_api_ici
+```
+
+3. Redemarre le serveur avec `npm run dev`.
+
+La cle reste cote serveur et n'est jamais envoyee au navigateur. L'utilisation gratuite depend des limites du compte Google.
+
 ## Getting Started
 
 Lance le serveur de developpement :
