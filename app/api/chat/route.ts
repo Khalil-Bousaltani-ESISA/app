@@ -49,10 +49,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const visionModel = process.env.GROQ_VISION_MODEL;
-    if (attachment && !visionModel) {
-      return NextResponse.json({ error: "La clé Groq actuelle ne possède pas de modèle vision. Ajoutez GROQ_VISION_MODEL après avoir activé un modèle vision dans Groq." }, { status: 422 });
-    }
+    const visionModel = process.env.GROQ_VISION_MODEL ?? "qwen/qwen3.8-27b";
     const response = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
       {
