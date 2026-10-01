@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const message = typeof body.message === "string" ? body.message.trim() : "";
   const attachment = body.attachment as Attachment | null;
-  const history = Array.isArray(body.messages) ? (body.messages as HistoryMessage[]).filter((item) => item && (item.role === "user" || item.role === "assistant") && typeof item.content === "string").slice(-12) : [];
+  const history = Array.isArray(body.messages) ? (body.messages as HistoryMessage[]).filter((item) => item && (item.role === "user" || item.role === "assistant") && typeof item.content === "string").slice(-13, -1) : [];
 
   if (!message) {
     return NextResponse.json({ error: "Message requis" }, { status: 400 });
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           model: attachment ? visionModel : "openai/gpt-oss-20b",
           messages: [
-            { role: "system", content: "Tu es Atelier, un assistant utile. Reponds en francais de maniere claire et concise." },
+            { role: "system", content: "Tu es Chat Khalil, un assistant utile. Reponds en francais de maniere claire et concise. Ne dis jamais que tu es Atelier." },
             ...history.map((item) => ({ role: item.role, content: item.content.slice(0, MAX_MESSAGE_LENGTH) })),
             ...(attachment ? [{ role: "user", content: [{ type: "text", text: message }, { type: "image_url", image_url: { url: attachment.dataUrl } }] }] : [{ role: "user", content: message }]),
           ],
