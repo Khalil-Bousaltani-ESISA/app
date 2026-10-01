@@ -26,6 +26,9 @@ export default function Home() {
   const [isDark, setIsDark] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isImagesOpen, setIsImagesOpen] = useState(false);
+  const [imagePrompt, setImagePrompt] = useState("");
+  const [selectedStyle, setSelectedStyle] = useState("Sketch");
   const [improveModel, setImproveModel] = useState(true);
   const [personalizedAds, setPersonalizedAds] = useState(true);
   const [marketingAudience, setMarketingAudience] = useState(true);
@@ -107,7 +110,8 @@ export default function Home() {
   }
 
   function openImagePicker() {
-    document.getElementById("atelier-file-input")?.click();
+    setIsImagesOpen(true);
+    setIsSettingsOpen(false);
     setIsSidebarOpen(false);
   }
 
@@ -171,7 +175,7 @@ export default function Home() {
       </aside>
       <section className="chat-panel">
         <header className="topbar"><button className="open-sidebar" onClick={() => setIsSidebarOpen(true)} aria-label={ui.settings}>☰</button><button className="mobile-brand" onClick={startNewChat}>ChatGPT <span className="chevron">⌄</span></button><div className="model-picker"><span className="status-dot" /> Atelier <span className="model-version">v1</span><span className="chevron">⌄</span></div><div className="top-actions"><button className="theme-toggle" onClick={() => setIsDark((value) => !value)} aria-label={ui.settings}>{isDark ? "☼" : "☾"}</button></div></header>
-        {isSettingsOpen ? <SettingsPanel language={language} setLanguage={setLanguage} isDark={isDark} setIsDark={setIsDark} improveModel={improveModel} setImproveModel={setImproveModel} personalizedAds={personalizedAds} setPersonalizedAds={setPersonalizedAds} marketingAudience={marketingAudience} setMarketingAudience={setMarketingAudience} personalizedMarketing={personalizedMarketing} setPersonalizedMarketing={setPersonalizedMarketing} onClose={() => setIsSettingsOpen(false)} /> : <div className="conversation-area">{messages.length === 0 ? <div className="welcome fade-in"><h1>{ui.welcome}<br />{ui.welcomeLine}</h1><div className="welcome-composer"><ChatComposer input={input} setInput={setInput} attachment={attachment} handleFile={handleFile} sendMessage={sendMessage} isLoading={isLoading} placeholder={ui.placeholder} /></div><div className="suggestions"><button onClick={() => setInput(suggestions[0])}>{ui.suggestion}</button></div></div> : <div className="messages">{messages.map((message, index) => <div className={`message-row ${message.role}`} key={`${message.role}-${index}`}><span className="message-avatar">{message.role === "assistant" ? "✦" : "KB"}</span><div className="message-body"><p className="message-name">{message.role === "assistant" ? ui.brand : (language === "en" ? "You" : language === "ar" ? "أنت" : "Vous")}</p>{message.attachment && <img className="attachment-preview" src={message.attachment.dataUrl} alt={message.attachment.name} />}{message.role === "assistant" ? <RichText content={message.content} /> : <p className="message-content">{message.content}</p>}</div></div>)}{isLoading && <div className="message-row assistant"><span className="message-avatar">✦</span><div><p className="message-name">{ui.brand}</p><p className="typing"><i /><i /><i /></p></div></div>}</div>}</div>}
+        {isImagesOpen ? <ImagesPanel language={language} prompt={imagePrompt} setPrompt={setImagePrompt} style={selectedStyle} setStyle={setSelectedStyle} onClose={() => setIsImagesOpen(false)} /> : isSettingsOpen ? <SettingsPanel language={language} setLanguage={setLanguage} isDark={isDark} setIsDark={setIsDark} improveModel={improveModel} setImproveModel={setImproveModel} personalizedAds={personalizedAds} setPersonalizedAds={setPersonalizedAds} marketingAudience={marketingAudience} setMarketingAudience={setMarketingAudience} personalizedMarketing={personalizedMarketing} setPersonalizedMarketing={setPersonalizedMarketing} onClose={() => setIsSettingsOpen(false)} /> : <div className="conversation-area">{messages.length === 0 ? <div className="welcome fade-in"><h1>{ui.welcome}<br />{ui.welcomeLine}</h1><div className="welcome-composer"><ChatComposer input={input} setInput={setInput} attachment={attachment} handleFile={handleFile} sendMessage={sendMessage} isLoading={isLoading} placeholder={ui.placeholder} /></div><div className="suggestions"><button onClick={() => setInput(suggestions[0])}>{ui.suggestion}</button></div></div> : <div className="messages">{messages.map((message, index) => <div className={`message-row ${message.role}`} key={`${message.role}-${index}`}><span className="message-avatar">{message.role === "assistant" ? "✦" : "KB"}</span><div className="message-body"><p className="message-name">{message.role === "assistant" ? ui.brand : (language === "en" ? "You" : language === "ar" ? "أنت" : "Vous")}</p>{message.attachment && <img className="attachment-preview" src={message.attachment.dataUrl} alt={message.attachment.name} />}{message.role === "assistant" ? <RichText content={message.content} /> : <p className="message-content">{message.content}</p>}</div></div>)}{isLoading && <div className="message-row assistant"><span className="message-avatar">✦</span><div><p className="message-name">{ui.brand}</p><p className="typing"><i /><i /><i /></p></div></div>}</div>}</div>}
         {messages.length > 0 && <div className="composer-wrap"><ChatComposer input={input} setInput={setInput} attachment={attachment} handleFile={handleFile} sendMessage={sendMessage} isLoading={isLoading} placeholder={ui.placeholder} /><p className="composer-note">{attachment ? `Fichier joint : ${(JSON.parse(attachment) as { name: string }).name}` : ui.legal}</p></div>}
         {messages.length === 0 && <p className="legal-note">{ui.legal}</p>}
       </section>
@@ -199,4 +203,12 @@ function SettingRow({ label, children }: { label: string; children: ReactNode })
 
 function ToggleRow({ title, description, value, onChange }: { title: string; description: string; value: boolean; onChange: (value: boolean) => void }) {
   return <div className="toggle-row"><div><strong>{title}</strong><p>{description}</p></div><button className={value ? "toggle on" : "toggle"} onClick={() => onChange(!value)} aria-pressed={value}><span /></button></div>;
+}
+
+function ImagesPanel({ language, prompt, setPrompt, style, setStyle, onClose }: { language: string; prompt: string; setPrompt: (value: string) => void; style: string; setStyle: (value: string) => void; onClose: () => void }) {
+  const arabic = language === "ar";
+  const title = arabic ? "الصور" : language === "en" ? "Images" : "Images";
+  const placeholder = arabic ? "صف صورة جديدة" : language === "en" ? "Describe a new image" : "Décrire une nouvelle image";
+  const styles = ["Sketch", "Stickers", "Portrait", "Caricature", "Illustration", "Photo réaliste"];
+  return <div className="images-area"><div className="images-content"><div className="images-heading"><button className="settings-back" onClick={onClose}>‹</button><h1>{title}</h1></div><form className="image-prompt" onSubmit={(event) => event.preventDefault()}><span>⌕</span><input value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder={placeholder} /><button type="submit" disabled={!prompt.trim()} aria-label="Generer">↑</button></form><h2>{arabic ? "إنشاء صورة" : language === "en" ? "Create an image" : "Créer une image"}</h2><div className="style-grid">{styles.map((item) => <button className={style === item ? "style-card selected" : "style-card"} onClick={() => setStyle(item)} key={item}><span className={`style-art style-${item.toLowerCase().replaceAll(" ", "-")}`}>{item === "Sketch" ? "✿" : item === "Stickers" ? "✦" : item === "Portrait" ? "◉" : item === "Caricature" ? "☻" : item === "Illustration" ? "✧" : "◌"}</span><strong>{item}</strong></button>)}</div><p className="images-note">{prompt ? `Style sélectionné : ${style}. Le prompt est prêt pour une API de génération d'images.` : "Choisissez un style puis décrivez votre image."}</p></div></div>;
 }
