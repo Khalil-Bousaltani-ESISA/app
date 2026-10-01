@@ -35,8 +35,12 @@ button { cursor: pointer; }
 
 /* Minimal landing composition inspired by the reference screen. */
 .sidebar { display: none; }
+.sidebar.sidebar-open { display: flex; width: 378px; flex: 0 0 378px; padding: 18px 16px; background: var(--panel); border-right: 1px solid var(--line); }
+.sidebar-header { display: flex; align-items: center; justify-content: space-between; margin: 0 13px 25px; }.sidebar-header .brand { margin: 0; font-size: 27px; }.sidebar-header .brand-mark { display: none; }.collapse-sidebar, .open-sidebar { border: 0; background: transparent; color: var(--muted); font-size: 24px; }.collapse-sidebar:hover, .open-sidebar:hover { color: var(--ink); }
+.sidebar .new-chat { border: 0; box-shadow: none; background: transparent; font-size: 20px; font-weight: 500; padding: 12px 0; }.sidebar .new-chat span { font-size: 29px; }.product-menu { display: grid; gap: 4px; margin: 6px 0 24px; }.product-menu button { border: 0; background: transparent; color: var(--ink); padding: 10px 0; text-align: left; font-size: 19px; display: flex; align-items: center; gap: 15px; }.product-menu button span { width: 25px; text-align: center; font-size: 25px; }.product-menu button b { margin-left: auto; color: var(--muted); font-weight: 400; }.sidebar .sidebar-label { margin: 10px 0 8px; }.sidebar .conversation-list { max-height: 25vh; }.sidebar .plan-card, .sidebar .sidebar-link, .sidebar .profile { font-size: 14px; }
 .chat-panel { background: var(--paper); }
 .topbar { height: 74px; justify-content: flex-start; border-bottom: 0; padding: 0 30px; }
+.open-sidebar { display: none; }
 .mobile-brand { display: block; position: static; border: 0; background: transparent; color: var(--ink); font-size: 20px; font-weight: 800; letter-spacing: -.04em; padding: 0; }
 .topbar > .model-picker { display: none; }
 .top-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
@@ -52,4 +56,4 @@ button { cursor: pointer; }
 .suggestions { margin-top: 64px; }.suggestions button { border-radius: 999px; padding: 14px 21px; background: var(--panel); color: var(--ink); font-size: 13px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
 .legal-note { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); width: min(620px, 90%); text-align: center; color: var(--muted); font-size: 11px; }
 .composer-wrap { width: min(850px, 90%); }.composer-wrap .composer { border-radius: 999px; }.composer-wrap .composer-note { margin-bottom: 0; }
-@media (max-width: 700px) { .topbar { padding: 0 18px; }.top-actions { gap: 5px; }.login-button, .signup-button { padding: 10px 12px; font-size: 11px; }.signup-button { display: none; }.welcome { transform: translateY(-5vh); }.welcome h1 { font-size: 38px; margin-bottom: 38px; }.welcome-composer { width: 96%; }.welcome-composer .composer textarea { font-size: 14px; }.legal-note { bottom: 14px; }.top-actions .theme-toggle { right: auto; } }
+@media (max-width: 700px) { .sidebar.sidebar-open { display: flex; position: fixed; z-index: 5; inset: 0 auto 0 0; width: min(86vw, 378px); box-shadow: 15px 0 35px rgba(0,0,0,.12); }.open-sidebar { display: block; margin-right: 12px; }.topbar { padding: 0 18px; }.top-actions { gap: 5px; }.login-button, .signup-button { padding: 10px 12px; font-size: 11px; }.signup-button { display: none; }.welcome { transform: translateY(-5vh); }.welcome h1 { font-size: 38px; margin-bottom: 38px; }.welcome-composer { width: 96%; }.welcome-composer .composer textarea { font-size: 14px; }.legal-note { bottom: 14px; }.top-actions .theme-toggle { right: auto; } }

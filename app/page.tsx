@@ -19,6 +19,7 @@ export default function Home() {
   const [attachment, setAttachment] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isReady, setIsReady] = useState(false);
   const activeConversation = conversations.find((conversation) => conversation.id === activeId);
   const messages = activeConversation?.messages ?? [];
@@ -109,9 +110,18 @@ export default function Home() {
 
   return (
     <main className={isDark ? "chat-shell dark-mode" : "chat-shell"}>
-      <aside className="sidebar">
-        <div className="brand"><span className="brand-mark">✦</span><span>atelier</span></div>
+      <aside className={isSidebarOpen ? "sidebar sidebar-open" : "sidebar"}>
+        <div className="sidebar-header"><div className="brand"><span className="brand-mark">✦</span><span>atelier</span></div><button className="collapse-sidebar" onClick={() => setIsSidebarOpen(false)} aria-label="Fermer le menu">◧</button></div>
         <button className="new-chat" onClick={startNewChat}><span>+</span> Nouvelle conversation</button>
+        <nav className="product-menu" aria-label="Menu principal">
+          <button onClick={startNewChat}><span>✎</span> Nouveau chat</button>
+          <button><span>▧</span> Images</button>
+          <button><span>◉</span> Plugins</button>
+          <button><span>⌁</span> Recherche approfondie</button>
+          <button><span>◈</span> Voir les offres et les tarifs <b>↗</b></button>
+          <button><span>◌</span> Aide <b>↗</b></button>
+          <button><span>⚙</span> Paramètres</button>
+        </nav>
         <p className="sidebar-label">Conversations recentes</p>
         <div className="conversation-list">{[...conversations].sort((a, b) => b.updatedAt - a.updatedAt).map((conversation) => <div className={conversation.id === activeId ? "conversation active" : "conversation"} key={conversation.id}><button className="conversation-select" onClick={() => setActiveId(conversation.id)}><span className="conversation-dot" />{conversation.title}</button><button className="conversation-action" onClick={() => renameConversation(conversation.id)} aria-label="Renommer">•••</button><button className="conversation-action delete-action" onClick={() => deleteConversation(conversation.id)} aria-label="Supprimer">×</button></div>)}</div>
         <div className="sidebar-spacer" />
@@ -120,7 +130,7 @@ export default function Home() {
         <div className="profile"><span className="avatar">KB</span><span><strong>Khalil</strong><small>Compte personnel</small></span><span className="more">•••</span></div>
       </aside>
       <section className="chat-panel">
-        <header className="topbar"><button className="mobile-brand" onClick={startNewChat}>atelier <span className="chevron">⌄</span></button><div className="model-picker"><span className="status-dot" /> Atelier <span className="model-version">v1</span><span className="chevron">⌄</span></div><div className="top-actions"><button className="login-button">Se connecter</button><button className="signup-button">Inscription gratuite</button><button className="theme-toggle" onClick={() => setIsDark((value) => !value)} aria-label="Changer le theme">{isDark ? "☼" : "☾"}</button></div></header>
+        <header className="topbar"><button className="open-sidebar" onClick={() => setIsSidebarOpen(true)} aria-label="Ouvrir le menu">☰</button><button className="mobile-brand" onClick={startNewChat}>ChatGPT <span className="chevron">⌄</span></button><div className="model-picker"><span className="status-dot" /> Atelier <span className="model-version">v1</span><span className="chevron">⌄</span></div><div className="top-actions"><button className="login-button">Se connecter</button><button className="signup-button">Inscription gratuite</button><button className="theme-toggle" onClick={() => setIsDark((value) => !value)} aria-label="Changer le theme">{isDark ? "☼" : "☾"}</button></div></header>
         <div className="conversation-area">{messages.length === 0 ? <div className="welcome fade-in"><h1>Par quoi<br />commençons-nous ?</h1><div className="welcome-composer"><ChatComposer input={input} setInput={setInput} attachment={attachment} handleFile={handleFile} sendMessage={sendMessage} isLoading={isLoading} /></div><div className="suggestions">{suggestions.slice(0, 1).map((suggestion) => <button key={suggestion} onClick={() => setInput(suggestion)}>{suggestion}</button>)}</div></div> : <div className="messages">{messages.map((message, index) => <div className={`message-row ${message.role}`} key={`${message.role}-${index}`}><span className="message-avatar">{message.role === "assistant" ? "✦" : "KB"}</span><div className="message-body"><p className="message-name">{message.role === "assistant" ? "atelier" : "Vous"}</p>{message.attachment && <img className="attachment-preview" src={message.attachment.dataUrl} alt={message.attachment.name} />}{message.role === "assistant" ? <RichText content={message.content} /> : <p className="message-content">{message.content}</p>}</div></div>)}{isLoading && <div className="message-row assistant"><span className="message-avatar">✦</span><div><p className="message-name">atelier</p><p className="typing"><i /><i /><i /></p></div></div>}</div>}</div>
         {messages.length > 0 && <div className="composer-wrap"><ChatComposer input={input} setInput={setInput} attachment={attachment} handleFile={handleFile} sendMessage={sendMessage} isLoading={isLoading} /><p className="composer-note">{attachment ? `Fichier joint : ${(JSON.parse(attachment) as { name: string }).name}` : "Atelier peut faire des erreurs. Verifiez les informations importantes."}</p></div>}
         {messages.length === 0 && <p className="legal-note">Atelier est une IA. En l’utilisant, vous acceptez nos conditions et notre politique de confidentialité.</p>}
