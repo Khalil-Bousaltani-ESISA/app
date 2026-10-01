@@ -7,6 +7,11 @@ type Conversation = { id: string; title: string; messages: Message[]; updatedAt:
 
 const STORAGE_KEY = "atelier-conversations";
 const suggestions = ["Explique-moi une idee simplement", "Aide-moi a organiser ma journee", "Ecris un plan pour mon projet"];
+const translations = {
+  fr: { brand: "atelier", newChat: "Nouvelle conversation", recent: "Conversations recentes", images: "Images", plugins: "Plugins", research: "Recherche approfondie", offers: "Voir les offres et les tarifs", help: "Aide", settings: "Paramètres", plan: "Plan gratuit", connected: "Groq connecte", account: "Compte personnel", login: "Se connecter", signup: "Inscription gratuite", welcome: "Par quoi", welcomeLine: "commençons-nous ?", placeholder: "Demander a Atelier", suggestion: "Qu'est-ce que tu sais faire ?", legal: "Atelier est une IA. En l’utilisant, vous acceptez nos conditions et notre politique de confidentialité." },
+  en: { brand: "atelier", newChat: "New chat", recent: "Recent conversations", images: "Images", plugins: "Plugins", research: "Deep research", offers: "View plans and pricing", help: "Help", settings: "Settings", plan: "Free plan", connected: "Groq connected", account: "Personal account", login: "Log in", signup: "Sign up free", welcome: "What should we", welcomeLine: "start with?", placeholder: "Ask Atelier", suggestion: "What can you do?", legal: "Atelier is an AI. By using it, you accept our terms and privacy policy." },
+  ar: { brand: "atelier", newChat: "محادثة جديدة", recent: "المحادثات الأخيرة", images: "الصور", plugins: "الإضافات", research: "بحث معمق", offers: "عرض الخطط والأسعار", help: "المساعدة", settings: "الإعدادات", plan: "الخطة المجانية", connected: "Groq متصل", account: "حساب شخصي", login: "تسجيل الدخول", signup: "إنشاء حساب مجاني", welcome: "بماذا", welcomeLine: "نبدأ؟", placeholder: "اسأل Atelier", suggestion: "ماذا يمكنك أن تفعل؟", legal: "Atelier هو نظام ذكاء اصطناعي. باستخدامه، أنت توافق على الشروط وسياسة الخصوصية." },
+} as const;
 
 function makeConversation(): Conversation {
   return { id: crypto.randomUUID(), title: "Nouvelle conversation", messages: [], updatedAt: Date.now() };
@@ -29,6 +34,7 @@ export default function Home() {
   const [isReady, setIsReady] = useState(false);
   const activeConversation = conversations.find((conversation) => conversation.id === activeId);
   const messages = activeConversation?.messages ?? [];
+  const ui = translations[language === "ar" ? "ar" : language === "en" ? "en" : "fr"];
 
   useEffect(() => {
     try {
@@ -130,29 +136,29 @@ export default function Home() {
   return (
     <main dir={language === "ar" ? "rtl" : "ltr"} className={isDark ? "chat-shell dark-mode" : "chat-shell"}>
       <aside className={isSidebarOpen ? "sidebar sidebar-open" : "sidebar"}>
-        <div className="sidebar-header"><div className="brand"><span className="brand-mark">✦</span><span>atelier</span></div><button className="collapse-sidebar" onClick={() => setIsSidebarOpen(false)} aria-label="Fermer le menu">◧</button></div>
-        <button className="new-chat" onClick={startNewChat}><span>+</span> Nouvelle conversation</button>
+        <div className="sidebar-header"><div className="brand"><span className="brand-mark">✦</span><span>{ui.brand}</span></div><button className="collapse-sidebar" onClick={() => setIsSidebarOpen(false)} aria-label={ui.settings}>◧</button></div>
+        <button className="new-chat" onClick={startNewChat}><span>+</span> {ui.newChat}</button>
         <nav className="product-menu" aria-label="Menu principal">
-          <button onClick={startNewChat}><span>✎</span> Nouveau chat</button>
-          <button><span>▧</span> Images</button>
-          <button><span>◉</span> Plugins</button>
-          <button><span>⌁</span> Recherche approfondie</button>
-          <button><span>◈</span> Voir les offres et les tarifs <b>↗</b></button>
-          <button><span>◌</span> Aide <b>↗</b></button>
-          <button onClick={() => setIsSettingsOpen(true)}><span>⚙</span> Paramètres</button>
+          <button onClick={startNewChat}><span>✎</span> {ui.newChat}</button>
+          <button><span>▧</span> {ui.images}</button>
+          <button><span>◉</span> {ui.plugins}</button>
+          <button><span>⌁</span> {ui.research}</button>
+          <button><span>◈</span> {ui.offers} <b>↗</b></button>
+          <button><span>◌</span> {ui.help} <b>↗</b></button>
+          <button onClick={() => setIsSettingsOpen(true)}><span>⚙</span> {ui.settings}</button>
         </nav>
-        <p className="sidebar-label">Conversations recentes</p>
+        <p className="sidebar-label">{ui.recent}</p>
         <div className="conversation-list">{[...conversations].sort((a, b) => b.updatedAt - a.updatedAt).map((conversation) => <div className={conversation.id === activeId ? "conversation active" : "conversation"} key={conversation.id}><button className="conversation-select" onClick={() => setActiveId(conversation.id)}><span className="conversation-dot" />{conversation.title}</button><button className="conversation-action" onClick={() => renameConversation(conversation.id)} aria-label="Renommer">•••</button><button className="conversation-action delete-action" onClick={() => deleteConversation(conversation.id)} aria-label="Supprimer">×</button></div>)}</div>
         <div className="sidebar-spacer" />
-        <div className="plan-card"><span className="plan-icon">◈</span><div><strong>Plan gratuit</strong><small>Groq connecte</small></div><span className="arrow">›</span></div>
-        <button className="sidebar-link" onClick={() => setIsSettingsOpen(true)}><span>⚙</span> Parametres</button>
-        <div className="profile"><span className="avatar">KB</span><span><strong>Khalil</strong><small>Compte personnel</small></span><span className="more">•••</span></div>
+        <div className="plan-card"><span className="plan-icon">◈</span><div><strong>{ui.plan}</strong><small>{ui.connected}</small></div><span className="arrow">›</span></div>
+        <button className="sidebar-link" onClick={() => setIsSettingsOpen(true)}><span>⚙</span> {ui.settings}</button>
+        <div className="profile"><span className="avatar">KB</span><span><strong>Khalil</strong><small>{ui.account}</small></span><span className="more">•••</span></div>
       </aside>
       <section className="chat-panel">
-        <header className="topbar"><button className="open-sidebar" onClick={() => setIsSidebarOpen(true)} aria-label="Ouvrir le menu">☰</button><button className="mobile-brand" onClick={startNewChat}>ChatGPT <span className="chevron">⌄</span></button><div className="model-picker"><span className="status-dot" /> Atelier <span className="model-version">v1</span><span className="chevron">⌄</span></div><div className="top-actions"><button className="login-button">Se connecter</button><button className="signup-button">Inscription gratuite</button><button className="theme-toggle" onClick={() => setIsDark((value) => !value)} aria-label="Changer le theme">{isDark ? "☼" : "☾"}</button></div></header>
-        {isSettingsOpen ? <SettingsPanel language={language} setLanguage={setLanguage} isDark={isDark} setIsDark={setIsDark} improveModel={improveModel} setImproveModel={setImproveModel} personalizedAds={personalizedAds} setPersonalizedAds={setPersonalizedAds} marketingAudience={marketingAudience} setMarketingAudience={setMarketingAudience} personalizedMarketing={personalizedMarketing} setPersonalizedMarketing={setPersonalizedMarketing} onClose={() => setIsSettingsOpen(false)} /> : <div className="conversation-area">{messages.length === 0 ? <div className="welcome fade-in"><h1>Par quoi<br />commençons-nous ?</h1><div className="welcome-composer"><ChatComposer input={input} setInput={setInput} attachment={attachment} handleFile={handleFile} sendMessage={sendMessage} isLoading={isLoading} /></div><div className="suggestions">{suggestions.slice(0, 1).map((suggestion) => <button key={suggestion} onClick={() => setInput(suggestion)}>{suggestion}</button>)}</div></div> : <div className="messages">{messages.map((message, index) => <div className={`message-row ${message.role}`} key={`${message.role}-${index}`}><span className="message-avatar">{message.role === "assistant" ? "✦" : "KB"}</span><div className="message-body"><p className="message-name">{message.role === "assistant" ? "atelier" : "Vous"}</p>{message.attachment && <img className="attachment-preview" src={message.attachment.dataUrl} alt={message.attachment.name} />}{message.role === "assistant" ? <RichText content={message.content} /> : <p className="message-content">{message.content}</p>}</div></div>)}{isLoading && <div className="message-row assistant"><span className="message-avatar">✦</span><div><p className="message-name">atelier</p><p className="typing"><i /><i /><i /></p></div></div>}</div>}</div>}
-        {messages.length > 0 && <div className="composer-wrap"><ChatComposer input={input} setInput={setInput} attachment={attachment} handleFile={handleFile} sendMessage={sendMessage} isLoading={isLoading} /><p className="composer-note">{attachment ? `Fichier joint : ${(JSON.parse(attachment) as { name: string }).name}` : "Atelier peut faire des erreurs. Verifiez les informations importantes."}</p></div>}
-        {messages.length === 0 && <p className="legal-note">Atelier est une IA. En l’utilisant, vous acceptez nos conditions et notre politique de confidentialité.</p>}
+        <header className="topbar"><button className="open-sidebar" onClick={() => setIsSidebarOpen(true)} aria-label={ui.settings}>☰</button><button className="mobile-brand" onClick={startNewChat}>ChatGPT <span className="chevron">⌄</span></button><div className="model-picker"><span className="status-dot" /> Atelier <span className="model-version">v1</span><span className="chevron">⌄</span></div><div className="top-actions"><button className="login-button">{ui.login}</button><button className="signup-button">{ui.signup}</button><button className="theme-toggle" onClick={() => setIsDark((value) => !value)} aria-label={ui.settings}>{isDark ? "☼" : "☾"}</button></div></header>
+        {isSettingsOpen ? <SettingsPanel language={language} setLanguage={setLanguage} isDark={isDark} setIsDark={setIsDark} improveModel={improveModel} setImproveModel={setImproveModel} personalizedAds={personalizedAds} setPersonalizedAds={setPersonalizedAds} marketingAudience={marketingAudience} setMarketingAudience={setMarketingAudience} personalizedMarketing={personalizedMarketing} setPersonalizedMarketing={setPersonalizedMarketing} onClose={() => setIsSettingsOpen(false)} /> : <div className="conversation-area">{messages.length === 0 ? <div className="welcome fade-in"><h1>{ui.welcome}<br />{ui.welcomeLine}</h1><div className="welcome-composer"><ChatComposer input={input} setInput={setInput} attachment={attachment} handleFile={handleFile} sendMessage={sendMessage} isLoading={isLoading} placeholder={ui.placeholder} /></div><div className="suggestions"><button onClick={() => setInput(suggestions[0])}>{ui.suggestion}</button></div></div> : <div className="messages">{messages.map((message, index) => <div className={`message-row ${message.role}`} key={`${message.role}-${index}`}><span className="message-avatar">{message.role === "assistant" ? "✦" : "KB"}</span><div className="message-body"><p className="message-name">{message.role === "assistant" ? ui.brand : (language === "en" ? "You" : language === "ar" ? "أنت" : "Vous")}</p>{message.attachment && <img className="attachment-preview" src={message.attachment.dataUrl} alt={message.attachment.name} />}{message.role === "assistant" ? <RichText content={message.content} /> : <p className="message-content">{message.content}</p>}</div></div>)}{isLoading && <div className="message-row assistant"><span className="message-avatar">✦</span><div><p className="message-name">{ui.brand}</p><p className="typing"><i /><i /><i /></p></div></div>}</div>}</div>}
+        {messages.length > 0 && <div className="composer-wrap"><ChatComposer input={input} setInput={setInput} attachment={attachment} handleFile={handleFile} sendMessage={sendMessage} isLoading={isLoading} placeholder={ui.placeholder} /><p className="composer-note">{attachment ? `Fichier joint : ${(JSON.parse(attachment) as { name: string }).name}` : ui.legal}</p></div>}
+        {messages.length === 0 && <p className="legal-note">{ui.legal}</p>}
       </section>
     </main>
   );
@@ -162,8 +168,8 @@ function RichText({ content }: { content: string }) {
   return <div className="rich-content">{content.split("\n").map((line, index) => <p key={`${line}-${index}`}>{line.split(/(\*\*[^*]+\*\*)/g).map((part, partIndex) => part.startsWith("**") && part.endsWith("**") ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : part)}</p>)}</div>;
 }
 
-function ChatComposer({ input, setInput, attachment, handleFile, sendMessage, isLoading }: { input: string; setInput: (value: string) => void; attachment: string; handleFile: (event: ChangeEvent<HTMLInputElement>) => void; sendMessage: (event?: FormEvent) => void; isLoading: boolean }) {
-  return <form className="composer" onSubmit={sendMessage}><label className="attach" aria-label="Ajouter une piece jointe"><input type="file" onChange={handleFile} accept=".txt,.md,.pdf,.png,.jpg,.jpeg" />+</label><textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} placeholder={attachment ? "Fichier pret. Decrivez ce que vous voulez analyser..." : "Demander a Atelier"} rows={1} /><span className="mic-icon">⌕</span><button className="send" type="submit" disabled={!input.trim() || isLoading} aria-label="Envoyer">↑</button></form>;
+function ChatComposer({ input, setInput, attachment, handleFile, sendMessage, isLoading, placeholder }: { input: string; setInput: (value: string) => void; attachment: string; handleFile: (event: ChangeEvent<HTMLInputElement>) => void; sendMessage: (event?: FormEvent) => void; isLoading: boolean; placeholder: string }) {
+  return <form className="composer" onSubmit={sendMessage}><label className="attach" aria-label="Ajouter une piece jointe"><input type="file" onChange={handleFile} accept=".txt,.md,.pdf,.png,.jpg,.jpeg" />+</label><textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} placeholder={attachment ? "Fichier pret. Decrivez ce que vous voulez analyser..." : placeholder} rows={1} /><span className="mic-icon">⌕</span><button className="send" type="submit" disabled={!input.trim() || isLoading} aria-label="Envoyer">↑</button></form>;
 }
 
 function SettingsPanel({ language, setLanguage, isDark, setIsDark, improveModel, setImproveModel, personalizedAds, setPersonalizedAds, marketingAudience, setMarketingAudience, personalizedMarketing, setPersonalizedMarketing, onClose }: { language: string; setLanguage: (value: string) => void; isDark: boolean; setIsDark: (value: boolean) => void; improveModel: boolean; setImproveModel: (value: boolean) => void; personalizedAds: boolean; setPersonalizedAds: (value: boolean) => void; marketingAudience: boolean; setMarketingAudience: (value: boolean) => void; personalizedMarketing: boolean; setPersonalizedMarketing: (value: boolean) => void; onClose: () => void }) {
