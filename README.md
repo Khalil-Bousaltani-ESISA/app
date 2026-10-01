@@ -4,7 +4,22 @@ Une plateforme de conversation inspiree de ChatGPT, construite avec Next.js, Typ
 
 Elle comprend une interface responsive, des suggestions de conversation, un mode clair/sombre, des conversations sauvegardees dans le navigateur, le renommage/suppression des conversations, des pieces jointes comme contexte et une route serveur `POST /api/chat`. Sans cle API, elle fonctionne en mode demo.
 
-L'API limite la taille des messages et le nombre de requetes par minute pour proteger le quota Groq gratuit. L'authentification et la synchronisation multi-appareils restent les prochaines etapes pour une version SaaS.
+L'API limite la taille des messages et le nombre de requetes par minute pour proteger le quota Groq gratuit.
+
+## Architecture Supabase
+
+La base du backend professionnel est incluse dans `supabase/schema.sql` : tables des conversations et messages, index, trigger de mise a jour et Row Level Security.
+
+1. Cree un projet sur Supabase.
+2. Execute `supabase/schema.sql` dans le SQL Editor.
+3. Ajoute ces variables dans `.env.local` et dans Vercel :
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=ton_url_supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=ta_cle_anon_supabase
+```
+
+Les clients Supabase sont dans `lib/supabase` et `proxy.ts` rafraichit les sessions de maniere compatible avec Next.js 16. La connexion et la synchronisation multi-appareils pourront utiliser cette base sans changer l'architecture.
 
 ## Activer Groq gratuitement
 
