@@ -32,9 +32,13 @@ export default function Home() {
         body: JSON.stringify({ message: content }),
       });
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error ?? "Le service IA est indisponible.");
+      }
       setMessages((current) => [...current, { role: "assistant", content: data.reply }]);
-    } catch {
-      setMessages((current) => [...current, { role: "assistant", content: "Une erreur est survenue. Reessaie dans un instant." }]);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue.";
+      setMessages((current) => [...current, { role: "assistant", content: `Erreur : ${errorMessage}` }]);
     } finally {
       setIsLoading(false);
     }
