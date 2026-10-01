@@ -32,3 +32,24 @@ button { cursor: pointer; }
 .loading-screen { display: grid; place-items: center; color: var(--muted); font-size: 13px; }
 .fade-in { animation: appear .7s ease both; } @keyframes appear { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } } @keyframes float { 50% { transform: translateY(-5px) rotate(4deg); } } @keyframes blink { 50% { opacity: .25; transform: translateY(-2px); } }
 @media (max-width: 700px) { .sidebar { display: none; }.topbar { height: 64px; justify-content: flex-end; padding: 0 18px; }.mobile-brand { display: block; position: absolute; left: 18px; border: 0; background: transparent; color: var(--ink); font-weight: 800; font-size: 17px; }.theme-toggle { right: 18px; }.model-picker { margin-right: 34px; }.welcome { padding-top: 80px; }.welcome h1 { font-size: 38px; }.suggestions { flex-direction: column; align-items: stretch; }.messages { padding-top: 25px; }.message-row.user { padding-left: 0; }.composer-wrap { width: 92%; margin-bottom: 15px; } }
+
+/* Minimal landing composition inspired by the reference screen. */
+.sidebar { display: none; }
+.chat-panel { background: var(--paper); }
+.topbar { height: 74px; justify-content: flex-start; border-bottom: 0; padding: 0 30px; }
+.mobile-brand { display: block; position: static; border: 0; background: transparent; color: var(--ink); font-size: 20px; font-weight: 800; letter-spacing: -.04em; padding: 0; }
+.topbar > .model-picker { display: none; }
+.top-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.login-button, .signup-button { border-radius: 999px; padding: 13px 19px; font-size: 13px; font-weight: 700; }
+.login-button { border: 0; background: #171717; color: #fff; }.signup-button { border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+.top-actions .theme-toggle { position: static; margin-left: 8px; }
+.conversation-area { align-items: center; }
+.welcome { width: min(1030px, 92%); padding: 0; transform: translateY(-7vh); }
+.welcome h1 { font-size: clamp(38px, 4.3vw, 62px); letter-spacing: -.065em; line-height: 1.08; margin: 0 0 52px; font-weight: 500; }
+.welcome-composer { width: min(850px, 100%); margin: 0 auto; }
+.welcome-composer .composer { min-height: 70px; border-radius: 999px; padding: 11px 15px 11px 17px; background: var(--panel); box-shadow: 0 12px 40px rgba(30, 30, 30, .08); }
+.welcome-composer .composer textarea { padding: 13px 12px; font-size: 16px; }.welcome-composer .send { width: 42px; height: 42px; border-radius: 50%; background: #b7c8ff; }.welcome-composer .attach { font-size: 28px; color: #272727; }.mic-icon { color: var(--ink); font-size: 21px; padding: 0 12px; }
+.suggestions { margin-top: 64px; }.suggestions button { border-radius: 999px; padding: 14px 21px; background: var(--panel); color: var(--ink); font-size: 13px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.legal-note { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); width: min(620px, 90%); text-align: center; color: var(--muted); font-size: 11px; }
+.composer-wrap { width: min(850px, 90%); }.composer-wrap .composer { border-radius: 999px; }.composer-wrap .composer-note { margin-bottom: 0; }
+@media (max-width: 700px) { .topbar { padding: 0 18px; }.top-actions { gap: 5px; }.login-button, .signup-button { padding: 10px 12px; font-size: 11px; }.signup-button { display: none; }.welcome { transform: translateY(-5vh); }.welcome h1 { font-size: 38px; margin-bottom: 38px; }.welcome-composer { width: 96%; }.welcome-composer .composer textarea { font-size: 14px; }.legal-note { bottom: 14px; }.top-actions .theme-toggle { right: auto; } }
