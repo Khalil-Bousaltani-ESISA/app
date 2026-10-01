@@ -72,7 +72,11 @@ export default function Home() {
 
   function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    if (file) setAttachment(file.name);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => setAttachment(JSON.stringify({ name: file.name, type: file.type, dataUrl: reader.result }));
+      reader.readAsDataURL(file);
+    }
     event.target.value = "";
   }
 
@@ -80,7 +84,8 @@ export default function Home() {
     event?.preventDefault();
     const content = input.trim();
     if (!content || isLoading || !activeConversation) return;
-    const userContent = attachment ? `${content}\n\n[Piece jointe : ${attachment}]` : content;
+    const attachmentData = attachment ? (JSON.parse(attachment) as { name: string; type: string; dataUrl: string }) : null;
+    const userContent = attachmentData ? `${content}\n\n[Piece jointe : ${attachmentData.name}]` : content;
     const userMessage: Message = { role: "user", content: userContent };
     const history = [...messages, userMessage];
     updateConversation(activeId, (conversation) => ({ ...conversation, title: conversation.messages.length ? conversation.title : content.slice(0, 35), messages: history, updatedAt: Date.now() }));
@@ -88,7 +93,7 @@ export default function Home() {
     setAttachment("");
     setIsLoading(true);
     try {
-      const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: content, messages: history }) });
+      const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: content, messages: history, attachment: attachmentData }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Le service IA est indisponible.");
       updateConversation(activeId, (conversation) => ({ ...conversation, messages: [...conversation.messages, { role: "assistant", content: data.reply }], updatedAt: Date.now() }));
@@ -117,7 +122,7 @@ export default function Home() {
       <section className="chat-panel">
         <header className="topbar"><button className="mobile-brand" onClick={startNewChat}>✦ atelier</button><div className="model-picker"><span className="status-dot" /> Atelier <span className="model-version">v1</span><span className="chevron">⌄</span></div><button className="theme-toggle" onClick={() => setIsDark((value) => !value)} aria-label="Changer le theme">{isDark ? "☼" : "☾"}</button></header>
         <div className="conversation-area">{messages.length === 0 ? <div className="welcome fade-in"><div className="welcome-orb">✦</div><p className="eyebrow">Votre espace de reflexion</p><h1>Que voulez-vous<br /><em>imaginer</em> aujourd&apos;hui ?</h1><p className="welcome-copy">Posez une question, explorez une idee ou commencez simplement par ecrire. Je suis la pour vous aider a avancer.</p><div className="suggestions">{suggestions.map((suggestion) => <button key={suggestion} onClick={() => setInput(suggestion)}>{suggestion}<span>↗</span></button>)}</div></div> : <div className="messages">{messages.map((message, index) => <div className={`message-row ${message.role}`} key={`${message.role}-${index}`}><span className="message-avatar">{message.role === "assistant" ? "✦" : "KB"}</span><div><p className="message-name">{message.role === "assistant" ? "atelier" : "Vous"}</p><p className="message-content">{message.content}</p></div></div>)}{isLoading && <div className="message-row assistant"><span className="message-avatar">✦</span><div><p className="message-name">atelier</p><p className="typing"><i /><i /><i /></p></div></div>}</div>}</div>
-        <div className="composer-wrap"><form className="composer" onSubmit={sendMessage}><label className="attach" aria-label="Ajouter une piece jointe"><input type="file" onChange={handleFile} accept=".txt,.md,.pdf,.png,.jpg,.jpeg" />+</label><textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} placeholder={attachment || "Ecrivez votre message..."} rows={1} /><button className="send" type="submit" disabled={!input.trim() || isLoading} aria-label="Envoyer">↑</button></form><p className="composer-note">{attachment ? `Fichier joint : ${attachment}` : "Atelier peut faire des erreurs. Verifiez les informations importantes."}</p></div>
+        <div className="composer-wrap"><form className="composer" onSubmit={sendMessage}><label className="attach" aria-label="Ajouter une piece jointe"><input type="file" onChange={handleFile} accept=".txt,.md,.pdf,.png,.jpg,.jpeg" />+</label><textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} placeholder={attachment ? "Fichier pret. Decrivez ce que vous voulez analyser..." : "Ecrivez votre message..."} rows={1} /><button className="send" type="submit" disabled={!input.trim() || isLoading} aria-label="Envoyer">↑</button></form><p className="composer-note">{attachment ? `Fichier joint : ${(JSON.parse(attachment) as { name: string }).name}` : "Atelier peut faire des erreurs. Verifiez les informations importantes."}</p></div>
       </section>
     </main>
   );

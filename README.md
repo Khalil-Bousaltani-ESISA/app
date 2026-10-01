@@ -2,7 +2,7 @@
 
 Une plateforme de conversation inspiree de ChatGPT, construite avec Next.js, TypeScript et Tailwind CSS.
 
-Elle comprend une interface responsive, des suggestions de conversation, un mode clair/sombre, des conversations sauvegardees dans le navigateur, le renommage/suppression des conversations, des pieces jointes comme contexte et une route serveur `POST /api/chat`. Sans cle API, elle fonctionne en mode demo.
+Elle comprend une interface responsive, des suggestions de conversation, un mode clair/sombre, des conversations sauvegardees dans le navigateur, le renommage/suppression des conversations, de vrais envois de pieces jointes et une route serveur `POST /api/chat`. Sans cle API, elle fonctionne en mode demo.
 
 L'API limite la taille des messages et le nombre de requetes par minute pour proteger le quota Groq gratuit.
 
@@ -33,6 +33,8 @@ GROQ_API_KEY=ta_cle_api_ici
 3. Redemarre le serveur avec `npm run dev`.
 
 La cle reste cote serveur et n'est jamais envoyee au navigateur. L'utilisation gratuite depend des limites du compte Groq.
+
+Pour analyser des images, le compte Groq doit avoir acces a un modele vision. Ajoute alors `GROQ_VISION_MODEL` dans Vercel et dans `.env.local`. Les fichiers sont limites a 8 Mo.
 
 ## Getting Started
 

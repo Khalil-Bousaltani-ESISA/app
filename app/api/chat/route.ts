@@ -6,6 +6,7 @@ type GroqResponse = {
 };
 
 type HistoryMessage = { role: "user" | "assistant"; content: string };
+type Attachment = { name: string; type: string; dataUrl: string };
 const requestLog = new Map<string, number[]>();
 const MAX_MESSAGE_LENGTH = 4000;
 const MAX_REQUESTS_PER_MINUTE = 20;
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => ({}));
   const message = typeof body.message === "string" ? body.message.trim() : "";
+  const attachment = body.attachment as Attachment | null;
   const history = Array.isArray(body.messages) ? (body.messages as HistoryMessage[]).filter((item) => item && (item.role === "user" || item.role === "assistant") && typeof item.content === "string").slice(-12) : [];
 
   if (!message) {
@@ -33,6 +35,9 @@ export async function POST(request: Request) {
   }
   if (message.length > MAX_MESSAGE_LENGTH) {
     return NextResponse.json({ error: `Message trop long. Limite : ${MAX_MESSAGE_LENGTH} caracteres.` }, { status: 400 });
+  }
+  if (attachment && (!attachment.name || !attachment.type || !attachment.dataUrl || attachment.dataUrl.length > 8_000_000)) {
+    return NextResponse.json({ error: "Piece jointe invalide ou trop volumineuse (8 Mo maximum)." }, { status: 400 });
   }
 
   const apiKey = process.env.GROQ_API_KEY;
@@ -44,16 +49,21 @@ export async function POST(request: Request) {
   }
 
   try {
+    const visionModel = process.env.GROQ_VISION_MODEL;
+    if (attachment && !visionModel) {
+      return NextResponse.json({ error: "La clé Groq actuelle ne possède pas de modèle vision. Ajoutez GROQ_VISION_MODEL après avoir activé un modèle vision dans Groq." }, { status: 422 });
+    }
     const response = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
       {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
-          model: "openai/gpt-oss-20b",
+          model: attachment ? visionModel : "openai/gpt-oss-20b",
           messages: [
             { role: "system", content: "Tu es Atelier, un assistant utile. Reponds en francais de maniere claire et concise." },
             ...history.map((item) => ({ role: item.role, content: item.content.slice(0, MAX_MESSAGE_LENGTH) })),
+            ...(attachment ? [{ role: "user", content: [{ type: "text", text: message }, { type: "image_url", image_url: { url: attachment.dataUrl } }] }] : [{ role: "user", content: message }]),
           ],
           temperature: 0.7,
           max_tokens: 1000,
